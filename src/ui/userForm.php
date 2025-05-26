@@ -1,20 +1,131 @@
-<form action="guardar_usuario.php" method="POST">
-    <label for="nombre">Nombre:</label>
-    <input type="text" id="nombre" name="nombre" required>
+<?php
+function renderUserForm($roles) {
+    ?>
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0" id="form-title">Agregar Usuario</h5>
+        </div>
+        <div class="card-body">
+            <form id="user-form" method="POST">
+                <input type="hidden" id="user-id" name="id" value="">
+                <input type="hidden" id="form-action" name="action" value="create">
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="nombre" class="form-label">Nombre *</label>
+                            <input type="text" class="form-control" id="nombre" name="nombre" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email *</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="contrasena" class="form-label">
+                                <span id="password-label">Contraseña *</span>
+                            </label>
+                            <input type="password" class="form-control" id="contrasena" name="contrasena">
+                            <div class="form-text" id="password-help" style="display: none;">
+                                Deja en blanco para mantener la contraseña actual
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Roles</label>
+                            <?php foreach ($roles as $rol): ?>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" 
+                                           name="roles[]" value="<?= $rol->id ?>" 
+                                           id="rol_<?= $rol->id ?>">
+                                    <label class="form-check-label" for="rol_<?= $rol->id ?>">
+                                        <?= htmlspecialchars($rol->nombre) ?>
+                                    </label>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary" id="submit-btn">
+                        Guardar Usuario
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="cancel-btn" 
+                            onclick="resetForm()" style="display: none;">
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-    <label for="email">Correo electrónico:</label>
-    <input type="email" id="email" name="email" required>
-
-    <label for="roles">Roles:</label>
-    <select id="roles" name="roles[]" multiple>
-        <?php
-        // Recuperar todos los roles desde la base de datos
-        $consulta = $conexion->query("SELECT id, nombre FROM roles");
-        while ($rol = $consulta->fetch()) {
-            echo "<option value='{$rol['id']}'>{$rol['nombre']}</option>";
+    <script>
+        function resetForm() {
+            document.getElementById('user-form').reset();
+            document.getElementById('user-id').value = '';
+            document.getElementById('form-action').value = 'create';
+            document.getElementById('form-title').textContent = 'Agregar Usuario';
+            document.getElementById('submit-btn').textContent = 'Guardar Usuario';
+            document.getElementById('cancel-btn').style.display = 'none';
+            document.getElementById('password-label').textContent = 'Contraseña *';
+            document.getElementById('password-help').style.display = 'none';
+            document.getElementById('contrasena').required = true;
+            
+            // Limpiar checkboxes de roles
+            const roleCheckboxes = document.querySelectorAll('input[name="roles[]"]');
+            roleCheckboxes.forEach(checkbox => checkbox.checked = false);
         }
-        ?>
-    </select>
 
-    <button type="submit">Guardar</button>
-</form>
+        function editUser(userId) {
+            fetch(`controllers/userController.php?action=get&id=${userId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const user = data.user;
+                        
+                        document.getElementById('user-id').value = user.id;
+                        document.getElementById('nombre').value = user.nombre;
+                        document.getElementById('email').value = user.email;
+                        document.getElementById('form-action').value = 'update';
+                        document.getElementById('form-title').textContent = 'Editar Usuario';
+                        document.getElementById('submit-btn').textContent = 'Actualizar Usuario';
+                        document.getElementById('cancel-btn').style.display = 'inline-block';
+                        document.getElementById('password-label').textContent = 'Nueva Contraseña';
+                        document.getElementById('password-help').style.display = 'block';
+                        document.getElementById('contrasena').required = false;
+                        
+                        // Marcar roles del usuario
+                        const roleCheckboxes = document.querySelectorAll('input[name="roles[]"]');
+                        roleCheckboxes.forEach(checkbox => {
+                            checkbox.checked = user.roles.includes(parseInt(checkbox.value));
+                        });
+                        
+                        // Scroll al formulario
+                        document.getElementById('user-form').scrollIntoView({ behavior: 'smooth' });
+                    } else {
+                        alert('Error al cargar usuario: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al cargar usuario');
+                });
+        }
+
+        // Configurar el formulario para enviar a la acción correcta
+        document.getElementById('user-form').addEventListener('submit', function(e) {
+            const action = document.getElementById('form-action').value;
+            this.action = `controllers/userController.php?action=${action}`;
+        });
+    </script>
+    <?php
+}
+?>

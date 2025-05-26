@@ -1,13 +1,13 @@
 <?php
 class Rol {
-  private $id;
-  private $nombre;
-  private $descripcion;
+    public $id;
+    public $nombre;
+    public $descripcion;
 
-  public function __construct($id, $nombre, $descripcion) {
-      $this->id = $id;
-      $this->nombre = $nombre;
-      $this->descripcion = $descripcion;
-  }
+    public function __construct($id = null, $nombre = '', $descripcion = '') {
+        $this->id = $id;
+        $this->nombre = $nombre;
+        $this->descripcion = $descripcion;
+    }
 }
 ?>
