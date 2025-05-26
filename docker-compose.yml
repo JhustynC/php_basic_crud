@@ -4,7 +4,6 @@ services:
     container_name: php-apache
     volumes:
       - ./src:/var/www/html
-      - ./000-default.conf:/etc/apache2/sites-available/000-default.conf
     ports:
       - "8080:80"
     depends_on:
