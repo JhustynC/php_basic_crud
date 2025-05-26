@@ -2,22 +2,32 @@
 require_once __DIR__ . '/../data/userRepository.php';
 
 class UserController {
-  private $usuarioRepository;
+  private $conexion;
 
-  public function __construct($conn) {
-    $this->usuarioRepository = new UserRepository($conn);
+  public function __construct($conexion) {
+      $this->conexion = $conexion;
   }
 
-  public function manejarSolicitud() {
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nombre'], $_POST['email'])) {
-      $this->usuarioRepository->insertarUsuario($_POST['nombre'], $_POST['email']);
-    }
+  public function asignarRolesAUsuario($usuarioId) {
+      // Recuperar los roles del usuario desde la base de datos
+      $consulta = $this->conexion->prepare("
+          SELECT r.id, r.nombre, r.descripcion
+          FROM roles r
+          JOIN usuario_roles ur ON r.id = ur.rol_id
+          WHERE ur.usuario_id = :usuario_id
+      ");
+      $consulta->bindParam(':usuario_id', $usuarioId);
+      $consulta->execute();
+      $rolesData = $consulta->fetchAll();
 
-    if (isset($_GET['delete'])) {
-      $this->usuarioRepository->eliminarUsuario($_GET['delete']);
-    }
+      // Crear objetos Rol y asignarlos al usuario
+      $usuario = new User($usuarioId, 'Nombre del Usuario', 'email@ejemplo.com');
+      foreach ($rolesData as $rolData) {
+          $rol = new Rol($rolData['id'], $rolData['nombre'], $rolData['descripcion']);
+          $usuario->agregarRol($rol);
+      }
 
-    return $this->usuarioRepository->obtenerUsuarios();
+      return $usuario;
   }
 }
 ?>

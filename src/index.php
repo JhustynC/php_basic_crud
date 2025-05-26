@@ -1,6 +1,7 @@
 <?php
-require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../controllers/userController.php';
+require_once __DIR__ . '/config/database.php';
+require_once __DIR__ . '/controllers/userController.php';
+
 
 $controller = new UserController($conn);
 $usuarios = $controller->manejarSolicitud();
@@ -15,8 +16,8 @@ $usuarios = $controller->manejarSolicitud();
 </head>
 <body>
   <div class="container">
-    <?php include_once __DIR__ . '/../ui/formulario.php'; ?>
-    <?php include_once __DIR__ . '/../ui/tabla.php'; ?>
+  <?php include_once __DIR__ . '/ui/userForm.php'; ?>
+  <?php include_once __DIR__ . '/ui/userTable.php'; ?>
   </div>
 </body>
 </html>
