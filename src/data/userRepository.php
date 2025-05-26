@@ -1,169 +1,74 @@
 <?php
-require_once __DIR__ . '/../model/user.php';
-require_once __DIR__ . '/../model/rol.php';
+require_once __DIR__ . '/../model/User.php';
+require_once __DIR__ . '/../model/Rol.php';
 
 class UserRepository {
-    private $conn;
+    private $userModel;
+    private $rolModel;
 
-    public function __construct($connection) {
-        $this->conn = $connection;
+    public function __construct() {
+        $this->userModel = new User();
+        $this->rolModel = new Rol();
     }
 
     public function getAllUsers() {
-        $users = [];
-        $sql = "SELECT u.id, u.nombre, u.email, u.contrasena FROM usuarios u ORDER BY u.id";
-        $result = $this->conn->query($sql);
-        
-        if ($result->num_rows > 0) {
-            while ($row = $result->fetch_assoc()) {
-                $user = new User($row['id'], $row['nombre'], $row['email'], $row['contrasena']);
-                $user->setRoles($this->getUserRoles($row['id']));
-                $users[] = $user;
-            }
+        $users = $this->userModel->all();
+        foreach ($users as &$user) {
+            $user['roles'] = $this->userModel->getRoles($user['id']);
         }
         return $users;
     }
 
-    public function getUserById($id) {
-        $sql = "SELECT * FROM usuarios WHERE id = ?";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("i", $id);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        
-        if ($result->num_rows > 0) {
-            $row = $result->fetch_assoc();
-            $user = new User($row['id'], $row['nombre'], $row['email'], $row['contrasena']);
-            $user->setRoles($this->getUserRoles($row['id']));
-            return $user;
+    public function findUser($id) {
+        $user = $this->userModel->find($id);
+        if ($user) {
+            $user['roles'] = $this->userModel->getRoles($id);
         }
-        return null;
+        return $user;
     }
 
-    public function createUser(User $user) {
-        $this->conn->begin_transaction();
-        
-        try {
-            // Verificar si el email ya existe
-            $checkSql = "SELECT id FROM usuarios WHERE email = ?";
-            $checkStmt = $this->conn->prepare($checkSql);
-            $checkStmt->bind_param("s", $user->email);
-            $checkStmt->execute();
-            $checkResult = $checkStmt->get_result();
-            
-            if ($checkResult->num_rows > 0) {
-                throw new Exception("El email ya está registrado");
-            }
-            
-            $hashedPassword = password_hash($user->contrasena, PASSWORD_DEFAULT);
-            $sql = "INSERT INTO usuarios (nombre, email, contrasena) VALUES (?, ?, ?)";
-            $stmt = $this->conn->prepare($sql);
-            $stmt->bind_param("sss", $user->nombre, $user->email, $hashedPassword);
-            
-            if ($stmt->execute()) {
-                $userId = $this->conn->insert_id;
-                $this->updateUserRoles($userId, $user->roles);
-                $this->conn->commit();
-                return $userId;
-            } else {
-                throw new Exception("Error al insertar usuario: " . $this->conn->error);
-            }
-        } catch (Exception $e) {
-            $this->conn->rollback();
-            throw $e;
+    public function createUser($data) {
+        if (!isset($data['contrasena'])) {
+            $data['contrasena'] = password_hash('default123', PASSWORD_BCRYPT); // Contraseña por defecto
+        } else {
+            $data['contrasena'] = password_hash($data['contrasena'], PASSWORD_BCRYPT);
         }
+        $userId = $this->userModel->create($data);
+        if (isset($data['roles']) && is_array($data['roles'])) {
+            foreach ($data['roles'] as $roleId) {
+                $this->userModel->assignRole($userId, $roleId);
+            }
+        }
+        return $userId;
     }
 
-    public function updateUser(User $user) {
-        $this->conn->begin_transaction();
-        
-        try {
-            // Verificar si el email ya existe en otro usuario
-            $checkSql = "SELECT id FROM usuarios WHERE email = ? AND id != ?";
-            $checkStmt = $this->conn->prepare($checkSql);
-            $checkStmt->bind_param("si", $user->email, $user->id);
-            $checkStmt->execute();
-            $checkResult = $checkStmt->get_result();
-            
-            if ($checkResult->num_rows > 0) {
-                throw new Exception("El email ya está registrado por otro usuario");
+    public function updateUser($id, $data) {
+        $updateData = [
+            'nombre' => $data['nombre'],
+            'email' => $data['email']
+        ];
+        if (isset($data['contrasena']) && !empty($data['contrasena'])) {
+            $updateData['contrasena'] = password_hash($data['contrasena'], PASSWORD_BCRYPT);
+        }
+        $this->userModel->update($id, $updateData);
+        if (isset($data['roles']) && is_array($data['roles'])) {
+            $currentRoles = array_column($this->userModel->getRoles($id), 'id');
+            $newRoles = $data['roles'];
+            foreach (array_diff($currentRoles, $newRoles) as $roleId) {
+                $this->userModel->removeRole($id, $roleId);
             }
-            
-            if (!empty($user->contrasena)) {
-                $hashedPassword = password_hash($user->contrasena, PASSWORD_DEFAULT);
-                $sql = "UPDATE usuarios SET nombre = ?, email = ?, contrasena = ? WHERE id = ?";
-                $stmt = $this->conn->prepare($sql);
-                $stmt->bind_param("sssi", $user->nombre, $user->email, $hashedPassword, $user->id);
-            } else {
-                $sql = "UPDATE usuarios SET nombre = ?, email = ? WHERE id = ?";
-                $stmt = $this->conn->prepare($sql);
-                $stmt->bind_param("ssi", $user->nombre, $user->email, $user->id);
+            foreach (array_diff($newRoles, $currentRoles) as $roleId) {
+                $this->userModel->assignRole($id, $roleId);
             }
-            
-            if ($stmt->execute()) {
-                $this->updateUserRoles($user->id, $user->roles);
-                $this->conn->commit();
-                return true;
-            } else {
-                throw new Exception("Error al actualizar usuario: " . $this->conn->error);
-            }
-        } catch (Exception $e) {
-            $this->conn->rollback();
-            throw $e;
         }
     }
 
     public function deleteUser($id) {
-        $sql = "DELETE FROM usuarios WHERE id = ?";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("i", $id);
-        return $stmt->execute();
+        return $this->userModel->delete($id); // Las relaciones se eliminan automáticamente por ON DELETE CASCADE
     }
 
     public function getAllRoles() {
-        $roles = [];
-        $sql = "SELECT * FROM roles ORDER BY nombre";
-        $result = $this->conn->query($sql);
-        
-        if ($result->num_rows > 0) {
-            while ($row = $result->fetch_assoc()) {
-                $roles[] = new Rol($row['id'], $row['nombre'], $row['descripcion']);
-            }
-        }
-        return $roles;
-    }
-
-    private function getUserRoles($userId) {
-        $roles = [];
-        $sql = "SELECT rol_id FROM usuario_roles WHERE usuario_id = ?";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("i", $userId);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        
-        while ($row = $result->fetch_assoc()) {
-            $roles[] = $row['rol_id'];
-        }
-        return $roles;
-    }
-
-    private function updateUserRoles($userId, $roles) {
-        // Eliminar roles existentes
-        $sql = "DELETE FROM usuario_roles WHERE usuario_id = ?";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("i", $userId);
-        $stmt->execute();
-        
-        // Insertar nuevos roles
-        if (!empty($roles)) {
-            $sql = "INSERT INTO usuario_roles (usuario_id, rol_id) VALUES (?, ?)";
-            $stmt = $this->conn->prepare($sql);
-            
-            foreach ($roles as $rolId) {
-                $stmt->bind_param("ii", $userId, $rolId);
-                $stmt->execute();
-            }
-        }
+        return $this->rolModel->all();
     }
 }
 ?>

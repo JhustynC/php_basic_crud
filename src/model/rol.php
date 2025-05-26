@@ -1,13 +1,11 @@
 <?php
-class Rol {
-    public $id;
-    public $nombre;
-    public $descripcion;
+require_once __DIR__ . '/Model.php';
 
-    public function __construct($id = null, $nombre = '', $descripcion = '') {
-        $this->id = $id;
-        $this->nombre = $nombre;
-        $this->descripcion = $descripcion;
+class Rol extends Model {
+    protected $table = 'roles';
+
+    public function __construct() {
+        parent::__construct();
     }
 }
 ?>

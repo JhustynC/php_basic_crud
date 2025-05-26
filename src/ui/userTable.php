@@ -1,11 +1,12 @@
 <?php
-function renderUserTable($users, $roles) {
+function renderUserTable($users, $roles)
+{
     // Crear un mapa de roles para fácil acceso
     $roleMap = [];
     foreach ($roles as $rol) {
-        $roleMap[$rol->id] = $rol->nombre;
+        $roleMap[$rol['id']] = $rol['nombre'];  // Esto ya está correcto
     }
-    ?>
+?>
     <div class="card">
         <div class="card-header">
             <h5 class="card-title mb-0">Lista de Usuarios</h5>
@@ -31,23 +32,24 @@ function renderUserTable($users, $roles) {
                             </tr>
                         <?php else: ?>
                             <?php foreach ($users as $user): ?>
-                                <tr>
-                                    <td><?= $user->id ?></td>
-                                    <td><?= htmlspecialchars($user->nombre) ?></td>
-                                    <td><?= htmlspecialchars($user->email) ?></td>
+                                <tr data-user-id="<?= $user['id'] ?? '' ?>">
+                                    <td><?= $user['id'] ?? 'N/A' ?></td>
+                                    <td><?= htmlspecialchars($user['nombre'] ?? '') ?></td>
+                                    <td><?= htmlspecialchars($user['email'] ?? '') ?></td>
                                     <td>
-                                        <?php if (empty($user->roles)): ?>
+                                        <?php
+                                        if (empty($user['roles']) || !is_array($user['roles'])): ?>
                                             <span class="text-muted">Sin roles</span>
                                         <?php else: ?>
-                                            <?php 
+                                            <?php
                                             $userRoleNames = [];
-                                            foreach ($user->roles as $roleId) {
-                                                if (isset($roleMap[$roleId])) {
+                                            foreach ($user['roles'] as $roleId) {
+                                                // Asegúrate de que $roleId sea escalar
+                                                if (is_scalar($roleId) && isset($roleMap[$roleId])) {
                                                     $userRoleNames[] = $roleMap[$roleId];
                                                 }
                                             }
-                                            ?>
-                                            <?php foreach ($userRoleNames as $index => $roleName): ?>
+                                            foreach ($userRoleNames as $roleName): ?>
                                                 <span class="badge bg-primary me-1">
                                                     <?= htmlspecialchars($roleName) ?>
                                                 </span>
@@ -56,13 +58,13 @@ function renderUserTable($users, $roles) {
                                     </td>
                                     <td>
                                         <div class="btn-group btn-group-sm" role="group">
-                                            <button type="button" class="btn btn-outline-primary" 
-                                                    onclick="editUser(<?= $user->id ?>)" title="Editar">
+                                            <button type="button" class="btn btn-outline-primary"
+                                                onclick="editUser(<?= $user['id'] ?? '' ?>)" title="Editar">
                                                 <i class="fas fa-edit"></i>
                                             </button>
-                                            <button type="button" class="btn btn-outline-danger" 
-                                                    onclick="confirmDelete(<?= $user->id ?>, '<?= htmlspecialchars($user->nombre) ?>')" 
-                                                    title="Eliminar">
+                                            <button type="button" class="btn btn-outline-danger"
+                                                onclick="confirmDelete(<?= $user['id'] ?? '' ?>, '<?= htmlspecialchars($user['nombre'] ?? '') ?>')"
+                                                title="Eliminar">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </div>
@@ -78,11 +80,36 @@ function renderUserTable($users, $roles) {
 
     <script>
         function confirmDelete(userId, userName) {
-            if (confirm(`¿Estás seguro de que deseas eliminar al usuario "${userName}"?`)) {
-                window.location.href = `controllers/userController.php?action=delete&id=${userId}`;
-            }
+            Swal.fire({
+                title: `¿Eliminar a "${userName}"?`,
+                text: "Esta acción no se puede deshacer.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(`controllers/userController.php?action=delete&id=${userId}`, {
+                            method: 'GET'
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire('Eliminado', data.message, 'success');
+                                const row = document.querySelector(`tr[data-user-id="${userId}"]`);
+                                if (row) row.remove();
+                            } else {
+                                Swal.fire('Error', data.message, 'error');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            Swal.fire('Error', 'Error al eliminar usuario', 'error');
+                        });
+                }
+            });
         }
     </script>
-    <?php
+<?php
 }
 ?>

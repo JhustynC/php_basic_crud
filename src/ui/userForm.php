@@ -15,12 +15,14 @@ function renderUserForm($roles) {
                         <div class="mb-3">
                             <label for="nombre" class="form-label">Nombre *</label>
                             <input type="text" class="form-control" id="nombre" name="nombre" required>
+                            <div class="invalid-feedback">Este campo es obligatorio.</div>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="email" class="form-label">Email *</label>
                             <input type="email" class="form-control" id="email" name="email" required>
+                            <div class="invalid-feedback">Este campo es obligatorio.</div>
                         </div>
                     </div>
                 </div>
@@ -32,6 +34,7 @@ function renderUserForm($roles) {
                                 <span id="password-label">Contraseña *</span>
                             </label>
                             <input type="password" class="form-control" id="contrasena" name="contrasena">
+                            <div class="invalid-feedback">Este campo es obligatorio.</div>
                             <div class="form-text" id="password-help" style="display: none;">
                                 Deja en blanco para mantener la contraseña actual
                             </div>
@@ -43,10 +46,10 @@ function renderUserForm($roles) {
                             <?php foreach ($roles as $rol): ?>
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" 
-                                           name="roles[]" value="<?= $rol->id ?>" 
-                                           id="rol_<?= $rol->id ?>">
-                                    <label class="form-check-label" for="rol_<?= $rol->id ?>">
-                                        <?= htmlspecialchars($rol->nombre) ?>
+                                    name="roles[]" value="<?= $rol['id'] ?>" 
+                                    id="rol_<?= $rol['id'] ?>">
+                                    <label class="form-check-label" for="rol_<?= $rol['id'] ?>">
+                                        <?= htmlspecialchars($rol['nombre'] ?? '') ?>
                                     </label>
                                 </div>
                             <?php endforeach; ?>
@@ -68,6 +71,17 @@ function renderUserForm($roles) {
     </div>
 
     <script>
+        // Validación visual en tiempo real
+        document.getElementById('user-form').addEventListener('input', function(e) {
+            const target = e.target;
+            if (target.required && !target.value) {
+                target.classList.add('is-invalid');
+            } else {
+                target.classList.remove('is-invalid');
+            }
+        });
+
+        // Resetear el formulario
         function resetForm() {
             document.getElementById('user-form').reset();
             document.getElementById('user-id').value = '';
@@ -84,6 +98,7 @@ function renderUserForm($roles) {
             roleCheckboxes.forEach(checkbox => checkbox.checked = false);
         }
 
+        // Cargar datos del usuario para editar
         function editUser(userId) {
             fetch(`controllers/userController.php?action=get&id=${userId}`)
                 .then(response => response.json())
@@ -111,19 +126,41 @@ function renderUserForm($roles) {
                         // Scroll al formulario
                         document.getElementById('user-form').scrollIntoView({ behavior: 'smooth' });
                     } else {
-                        alert('Error al cargar usuario: ' + data.message);
+                        Swal.fire('Error', 'Error al cargar usuario: ' + data.message, 'error');
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('Error al cargar usuario');
+                    Swal.fire('Error', 'Error al cargar usuario', 'error');
                 });
         }
 
-        // Configurar el formulario para enviar a la acción correcta
+        // Enviar el formulario con AJAX
         document.getElementById('user-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
             const action = document.getElementById('form-action').value;
-            this.action = `controllers/userController.php?action=${action}`;
+            const userId = document.getElementById('user-id').value;
+            const url = `controllers/userController.php?action=${action}${userId ? '&id=' + userId : ''}`;
+
+            fetch(url, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire('Éxito', data.message, 'success');
+                    resetForm();
+                    location.reload(); // O actualiza la tabla con AJAX
+                } else {
+                    Swal.fire('Error', data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire('Error', 'Error al procesar la solicitud', 'error');
+            });
         });
     </script>
     <?php
