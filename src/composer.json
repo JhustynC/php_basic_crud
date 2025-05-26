@@ -1,0 +1,19 @@
+{
+  "name": "jhustyn/mi-crud-php",
+  "description": "CRUD básico en PHP con arquitectura en capas",
+  "type": "project",
+  "authors": [
+    {
+      "name": "Jhustyn",
+      "email": "jhustyn@example.com"
+    }
+  ],
+  "require": {
+    "php": ">=7.4"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "src/"
+    }
+  }
+}
