@@ -7,4 +7,4 @@ $roles = $userRepo->getAllRoles();
 
 include 'userTable.php';
 renderUserTable($users, $roles);
-?>
+
