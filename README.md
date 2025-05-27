@@ -20,6 +20,11 @@ DB_PASS=rootpass
 DB_NAME=appdb
 DB_PORT=3306
 ```
+
+### Antes de ingresar al proyecto crear las tablas correspondiente en la Bade de Datos
+
+- Se especifican más abajo, puede usar los datos de prueba.
+
 ### Revisar que todo este bien 
 
 - project: http://localhost:8080

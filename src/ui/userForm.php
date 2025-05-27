@@ -3,9 +3,7 @@ function renderUserForm($roles)
 {
 ?>
     <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="card-title mb-0" id="form-title">Agregar Usuario</h5>
-        </div>
+    
         <div class="card-body">
             <form id="user-form" method="POST">
                 <input type="hidden" id="user-id" name="id" value="">

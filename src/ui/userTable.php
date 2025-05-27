@@ -7,11 +7,7 @@ function renderUserTable($users, $roles)
         $roleMap[$rol['id']] = $rol['nombre'];  // Esto ya está correcto
     }
 ?>
-
     <div class="card">
-        <div class="card-header">
-            <h5 class="card-title mb-0">Lista de Usuarios</h5>
-        </div>
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-striped table-hover">
