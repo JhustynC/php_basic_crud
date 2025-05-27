@@ -7,13 +7,14 @@ $roles = $userRepo->getAllRoles();
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title>Gestión de Usuarios</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
+        /* Tus estilos acá */
         .card-header { background-color: #f8f9fa; }
         .form-check { margin-bottom: 0.5rem; }
         .btn-primary { transition: background-color 0.3s; }
@@ -28,10 +29,60 @@ $roles = $userRepo->getAllRoles();
         <?php
         include 'ui/userForm.php';
         renderUserForm($roles);
-        include 'ui/userTable.php';
-        renderUserTable($users, $roles);
         ?>
+        
+        <!-- Aquí mostramos la tabla de usuarios -->
+        <div id="user-table-container">
+            <?php
+            include 'ui/userTable.php';
+            renderUserTable($users, $roles);
+            ?>
+        </div>
     </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Función para recargar la tabla desde PHP sin recargar la página
+        function recargarTablaUsuarios() {
+            fetch('ui/tablaUsuarios.php')
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('user-table-container').innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Error al recargar la tabla:', error);
+                });
+        }
+
+        // Ejemplo: si usas un formulario con fetch para guardar usuario,
+        // luego de guardar exitosamente, llama a recargarTablaUsuarios()
+
+        // Aquí solo te doy un ejemplo genérico:
+        /*
+        document.getElementById('miFormulario').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            fetch('controllers/userController.php?action=save', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.success) {
+                    Swal.fire('Éxito', data.message, 'success');
+                    recargarTablaUsuarios();
+                    // Opcional: limpiar formulario
+                    this.reset();
+                } else {
+                    Swal.fire('Error', data.message, 'error');
+                }
+            })
+            .catch(() => {
+                Swal.fire('Error', 'Error al guardar usuario', 'error');
+            });
+        });
+        */
+    </script>
 </body>
 </html>

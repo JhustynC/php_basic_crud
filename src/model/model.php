@@ -22,13 +22,33 @@ abstract class Model {
     }
 
     public function create(array $data) {
-        $columns = implode(', ', array_keys($data));
-        $placeholders = implode(', ', array_fill(0, count($data), '?'));
-        $sql = "INSERT INTO {$this->table} ($columns) VALUES ($placeholders)";
+        $stmt = $this->pdo->query("DESCRIBE {$this->table}");
+        $columns = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    
+        // Eliminar id si está vacío o nulo (AUTO_INCREMENT)
+        if (isset($data['id']) && ($data['id'] === '' || $data['id'] === null)) {
+            unset($data['id']);
+        }
+    
+        // Filtrar solo columnas válidas
+        $filteredData = array_filter(
+            $data,
+            fn($key) => in_array($key, $columns),
+            ARRAY_FILTER_USE_KEY
+        );
+    
+        if (empty($filteredData)) {
+            throw new Exception("No hay datos válidos para insertar.");
+        }
+    
+        $columnList = implode(', ', array_keys($filteredData));
+        $placeholders = implode(', ', array_fill(0, count($filteredData), '?'));
+        $sql = "INSERT INTO {$this->table} ($columnList) VALUES ($placeholders)";
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute(array_values($data));
+        $stmt->execute(array_values($filteredData));
         return $this->pdo->lastInsertId();
     }
+    
 
     public function update($id, array $data) {
         $set = implode(', ', array_map(fn($key) => "$key = ?", array_keys($data)));

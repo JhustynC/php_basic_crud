@@ -11,6 +11,11 @@ class UserRepository {
         $this->rolModel = new Rol();
     }
 
+    public function userExists($id) {
+        $user = $this->userModel->find($id);
+        return $user !== false && $user !== null;
+    }
+
     public function getAllUsers() {
         $users = $this->userModel->all();
         foreach ($users as &$user) {
@@ -43,14 +48,22 @@ class UserRepository {
     }
 
     public function updateUser($id, $data) {
+        if (!$this->userExists($id)) {
+            throw new Exception("El usuario con ID $id no existe.");
+        }
+    
         $updateData = [
             'nombre' => $data['nombre'],
             'email' => $data['email']
         ];
+    
         if (isset($data['contrasena']) && !empty($data['contrasena'])) {
             $updateData['contrasena'] = password_hash($data['contrasena'], PASSWORD_BCRYPT);
         }
-        $this->userModel->update($id, $updateData);
+    
+        // Retorna el resultado de la actualización principal
+        $updateSuccess = $this->userModel->update($id, $updateData);
+    
         if (isset($data['roles']) && is_array($data['roles'])) {
             $currentRoles = array_column($this->userModel->getRoles($id), 'id');
             $newRoles = $data['roles'];
@@ -61,7 +74,11 @@ class UserRepository {
                 $this->userModel->assignRole($id, $roleId);
             }
         }
+    
+        return $updateSuccess; // <- ¡Ahora retorna algo útil!
     }
+    
+    
 
     public function deleteUser($id) {
         return $this->userModel->delete($id); // Las relaciones se eliminan automáticamente por ON DELETE CASCADE

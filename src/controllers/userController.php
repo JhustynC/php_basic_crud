@@ -1,4 +1,7 @@
 <?php
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
 require_once '../data/userRepository.php';
 header('Content-Type: application/json');
 
@@ -38,6 +41,9 @@ if (isset($_GET['action'])) {
                 echo json_encode(['success' => false, 'message' => 'Error al actualizar usuario']);
             }
         }
+    }elseif ($action == 'list') {
+        $users = $userRepo->getAllUsers(); // Este método debe existir en userRepository.php
+        echo json_encode(['success' => true, 'users' => $users]);
     }
 }
 ?>

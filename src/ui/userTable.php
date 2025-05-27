@@ -7,6 +7,7 @@ function renderUserTable($users, $roles)
         $roleMap[$rol['id']] = $rol['nombre'];  // Esto ya está correcto
     }
 ?>
+
     <div class="card">
         <div class="card-header">
             <h5 class="card-title mb-0">Lista de Usuarios</h5>
@@ -43,10 +44,9 @@ function renderUserTable($users, $roles)
                                         <?php else: ?>
                                             <?php
                                             $userRoleNames = [];
-                                            foreach ($user['roles'] as $roleId) {
-                                                // Asegúrate de que $roleId sea escalar
-                                                if (is_scalar($roleId) && isset($roleMap[$roleId])) {
-                                                    $userRoleNames[] = $roleMap[$roleId];
+                                            foreach ($user['roles'] as $role) {
+                                                if (isset($role['id']) && isset($roleMap[$role['id']])) {
+                                                    $userRoleNames[] = $roleMap[$role['id']];
                                                 }
                                             }
                                             foreach ($userRoleNames as $roleName): ?>
