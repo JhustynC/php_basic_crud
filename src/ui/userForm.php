@@ -88,7 +88,7 @@ function renderUserForm($roles)
             form.reset();
             document.getElementById('user-id').value = '';
             document.getElementById('form-action').value = 'create';
-            document.getElementById('form-title').textContent = 'Agregar Usuario';
+            // document.getElementById('form-title').textContent = 'Agregar Usuario';
             document.getElementById('submit-btn').textContent = 'Guardar Usuario';
             document.getElementById('cancel-btn').style.display = 'none';
             document.getElementById('password-label').textContent = 'Contraseña *';
@@ -112,7 +112,7 @@ function renderUserForm($roles)
                         document.getElementById('nombre').value = user.nombre;
                         document.getElementById('email').value = user.email;
                         document.getElementById('form-action').value = 'update';
-                        document.getElementById('form-title').textContent = 'Editar Usuario';
+                        // document.getElementById('form-title').textContent = 'Editar Usuario';
                         document.getElementById('submit-btn').textContent = 'Actualizar Usuario';
                         document.getElementById('cancel-btn').style.display = 'inline-block';
                         document.getElementById('password-label').textContent = 'Nueva Contraseña';
