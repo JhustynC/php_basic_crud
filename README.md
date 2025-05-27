@@ -1,5 +1,31 @@
+# Basic PHP CRUD & AJAX - Simple ORM
+#### Jhustyn Carvajal - 2025
 
-# DB MODEL
+## Ejecución 
+- Mediante el uso de Docker y Docker Compose vamos a levantar un contenedor con 3 imagenes
+
+1. php-apache
+2. mysql
+3. phpmyadmin
+
+### Levantar el contenedor 
+```bash
+docker compose up -d
+```
+### Verficar que existe el .env y tenga las variables necesario
+```
+DB_HOST=db
+DB_USER=root
+DB_PASS=rootpass
+DB_NAME=appdb
+DB_PORT=3306
+```
+### Revisar que todo este bien 
+
+- project: http://localhost:8080
+- phpadmin: http://localhost:8081
+
+## DB MODEL
 
 ```SQL
 CREATE TABLE roles (
@@ -21,7 +47,7 @@ CREATE TABLE usuario_roles (
   FOREIGN KEY (rol_id) REFERENCES roles(id) ON DELETE CASCADE
 );
 ```
-# Fill data
+## Fill data
 
 ```SQL
 INSERT INTO roles (nombre, descripcion) VALUES
@@ -45,8 +71,7 @@ SELECT u.id, r.id
 FROM usuarios u, roles r
 WHERE u.nombre = 'Carlos Pérez' AND r.nombre = 'Editor';
 ```
-
-# SQL QUERIES
+## SQL QUERIES
 
 - Para obtener los roles asignados a un usuario específico, puedes ejecutar la siguiente consulta:
 
@@ -95,8 +120,7 @@ DELETE FROM usuario_roles WHERE rol_id = 4;
 -- Luego eliminar el rol
 DELETE FROM roles WHERE id = 4;
 ```
-
-# Eliminación automática (ya configurada)
+## Eliminación automática (ya configurada)
 Tabla usuario_roles tiene ON DELETE CASCADE, cuando elimines un rol se eliminan automáticamente todas sus asignaciones:
 
 ```SQL

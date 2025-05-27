@@ -43,9 +43,9 @@ $roles = $userRepo->getAllRoles();
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // Función para recargar la tabla desde PHP sin recargar la página
-        function recargarTablaUsuarios() {
-            fetch('ui/tablaUsuarios.php')
+        //? Función para recargar la tabla desde PHP sin recargar la página
+        function reloadUserTable() {
+            fetch('ui/reloadUserTable.php')
                 .then(response => response.text())
                 .then(html => {
                     document.getElementById('user-table-container').innerHTML = html;
@@ -54,35 +54,6 @@ $roles = $userRepo->getAllRoles();
                     console.error('Error al recargar la tabla:', error);
                 });
         }
-
-        // Ejemplo: si usas un formulario con fetch para guardar usuario,
-        // luego de guardar exitosamente, llama a recargarTablaUsuarios()
-
-        // Aquí solo te doy un ejemplo genérico:
-        /*
-        document.getElementById('miFormulario').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            fetch('controllers/userController.php?action=save', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if(data.success) {
-                    Swal.fire('Éxito', data.message, 'success');
-                    recargarTablaUsuarios();
-                    // Opcional: limpiar formulario
-                    this.reset();
-                } else {
-                    Swal.fire('Error', data.message, 'error');
-                }
-            })
-            .catch(() => {
-                Swal.fire('Error', 'Error al guardar usuario', 'error');
-            });
-        });
-        */
     </script>
 </body>
 </html>

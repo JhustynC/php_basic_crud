@@ -159,7 +159,7 @@ function renderUserForm($roles)
                     if (data.success) {
                         Swal.fire('Éxito', data.message, 'success');
                         resetForm();
-                        recargarTablaUsuarios(); // <--- Añadido aquí
+                        reloadUserTable(); // <--- Añadido aquí
                     } else {
                         Swal.fire('Error', data.message, 'error');
                     }
