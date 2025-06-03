@@ -42,17 +42,28 @@ function renderUserForm($roles)
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label class="form-label">Roles</label>
-                            <div id="roles-container">
-                                <?php foreach ($roles as $rol): ?>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox"
-                                            name="roles[]" value="<?= $rol['id'] ?>"
-                                            id="rol_<?= $rol['id'] ?>">
-                                        <label class="form-check-label" for="rol_<?= $rol['id'] ?>">
-                                            <?= htmlspecialchars($rol['nombre'] ?? '') ?>
-                                        </label>
-                                    </div>
-                                <?php endforeach; ?>
+                            <div class="dropdown">
+                                <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start" type="button" 
+                                    id="rolesDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Seleccionar roles
+                                </button>
+                                <ul class="dropdown-menu w-100" aria-labelledby="rolesDropdown">
+                                    <?php foreach ($roles as $rol): ?>
+                                        <li class="dropdown-item">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox"
+                                                    name="roles[]" value="<?= $rol['id'] ?>"
+                                                    id="rol_<?= $rol['id'] ?>">
+                                                <label class="form-check-label w-100" for="rol_<?= $rol['id'] ?>">
+                                                    <?= htmlspecialchars($rol['nombre'] ?? '') ?>
+                                                </label>
+                                            </div>
+                                        </li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            </div>
+                            <div id="selectedRoles" class="mt-2 small text-muted">
+                                Ningún rol seleccionado
                             </div>
                         </div>
                     </div>
@@ -72,6 +83,45 @@ function renderUserForm($roles)
     </div>
 
     <script>
+        // Actualizar el texto del botón con los roles seleccionados
+        document.addEventListener('DOMContentLoaded', function() {
+            const checkboxes = document.querySelectorAll('input[name="roles[]"]');
+            const dropdownButton = document.getElementById('rolesDropdown');
+            const selectedRolesDisplay = document.getElementById('selectedRoles');
+
+            function updateSelectedRoles() {
+                const selected = [];
+                checkboxes.forEach(checkbox => {
+                    if (checkbox.checked) {
+                        selected.push(checkbox.nextElementSibling.textContent.trim());
+                    }
+                });
+
+                if (selected.length > 0) {
+                    dropdownButton.textContent = selected.join(', ');
+                    selectedRolesDisplay.textContent = selected.join(', ');
+                    selectedRolesDisplay.classList.remove('text-muted');
+                    selectedRolesDisplay.classList.add('text-primary');
+                } else {
+                    dropdownButton.textContent = 'Seleccionar roles';
+                    selectedRolesDisplay.textContent = 'Ningún rol seleccionado';
+                    selectedRolesDisplay.classList.remove('text-primary');
+                    selectedRolesDisplay.classList.add('text-muted');
+                }
+            }
+
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', updateSelectedRoles);
+            });
+
+            // Evitar que el menú se cierre al hacer clic en los checkboxes
+            document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                menu.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                });
+            });
+        });
+
         // Validación visual en tiempo real
         document.getElementById('user-form').addEventListener('input', function(e) {
             const target = e.target;
@@ -98,6 +148,10 @@ function renderUserForm($roles)
             // Limpiar los roles
             const checkboxes = document.querySelectorAll('input[name="roles[]"]');
             checkboxes.forEach(c => c.checked = false);
+            document.getElementById('rolesDropdown').textContent = 'Seleccionar roles';
+            document.getElementById('selectedRoles').textContent = 'Ningún rol seleccionado';
+            document.getElementById('selectedRoles').classList.remove('text-primary');
+            document.getElementById('selectedRoles').classList.add('text-muted');
         }
 
         // Cargar datos del usuario para editar
@@ -126,6 +180,10 @@ function renderUserForm($roles)
                         checkboxes.forEach(checkbox => {
                             checkbox.checked = user.roles.includes(parseInt(checkbox.value));
                         });
+                        document.getElementById('rolesDropdown').textContent = user.roles.map(role => role.nombre).join(', ');
+                        document.getElementById('selectedRoles').textContent = user.roles.map(role => role.nombre).join(', ');
+                        document.getElementById('selectedRoles').classList.remove('text-muted');
+                        document.getElementById('selectedRoles').classList.add('text-primary');
 
                         // Scroll al formulario
                         document.getElementById('user-form').scrollIntoView({
