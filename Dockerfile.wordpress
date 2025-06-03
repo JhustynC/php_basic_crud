@@ -1,0 +1,19 @@
+# Dockerfile.wordpress
+FROM wordpress:latest
+
+# Instalar extensiones necesarias
+RUN apt-get update && apt-get install -y \
+    libzip-dev \
+    zip \
+    unzip \
+    libpng-dev \
+    libjpeg-dev \
+    libonig-dev \
+    libxml2-dev \
+    && docker-php-ext-install pdo pdo_mysql
+
+# Instalar Composer si lo necesitas
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Habilitar módulo rewrite de Apache
+RUN a2enmod rewrite

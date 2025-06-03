@@ -85,8 +85,10 @@ function renderUserTable($users, $roles)
                 cancelButtonText: 'Cancelar'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    fetch(`controllers/userController.php?action=delete&id=${userId}`, {
-                            method: 'GET'
+                    const deleteUrl = `${miPluginAjaxUrlBase}controllers/userController.php?action=delete&id=${userId}`;
+                    console.log('Intentando eliminar con URL:', deleteUrl); // <-- LÍNEA DE DEPURACIÓN
+                    fetch(deleteUrl, {
+                            method: 'GET' // Consider changing to 'DELETE' or 'POST' for delete operations as per REST best practices
                         })
                         .then(response => response.json())
                         .then(data => {

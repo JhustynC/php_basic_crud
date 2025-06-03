@@ -42,7 +42,9 @@ services:
       - app-network
 
   wordpress:
-    image: wordpress:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.wordpress
     container_name: wordpress
     restart: always
     environment:

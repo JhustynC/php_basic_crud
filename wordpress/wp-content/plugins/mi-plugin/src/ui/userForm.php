@@ -102,7 +102,9 @@ function renderUserForm($roles)
 
         // Cargar datos del usuario para editar
         function editUser(userId) {
-            fetch(`controllers/userController.php?action=get&id=${userId}`)
+            const url_edit = `${miPluginAjaxUrlBase}controllers/userController.php?action=get&id=${userId}`; 
+            console.log('Intentando acceder a URL para editar:', url_edit); 
+            fetch(url_edit)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -146,7 +148,9 @@ function renderUserForm($roles)
             const formData = new FormData(this);
             const action = formData.get('action');
             const userId = formData.get('id');
-            const url = `controllers/userController.php?action=${action}${userId ? '&id=' + userId : ''}`;
+            const url = `${miPluginAjaxUrlBase}controllers/userController.php?action=${action}${userId ? '&id=' + userId : ''}`;
+
+            console.log('Intentando acceder a URL:', url); 
 
             fetch(url, {
                     method: 'POST',
@@ -157,7 +161,7 @@ function renderUserForm($roles)
                     if (data.success) {
                         Swal.fire('Éxito', data.message, 'success');
                         resetForm();
-                        reloadUserTable(); // <--- Añadido aquí
+                        reloadUserTable(); 
                     } else {
                         Swal.fire('Error', data.message, 'error');
                     }

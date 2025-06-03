@@ -132,3 +132,63 @@ Tabla usuario_roles tiene ON DELETE CASCADE, cuando elimines un rol se eliminan 
 -- Esto elimina el rol Y todas sus asignaciones automáticamente
 DELETE FROM roles WHERE id = 4;
 ```
+
+## Instalar modulo PDO en Wordpress mediante Dockerfile
+
+```Dockerfile
+# Dockerfile.wordpress
+FROM wordpress:latest
+
+# Instalar extensiones necesarias
+RUN apt-get update && apt-get install -y \
+    libzip-dev \
+    zip \
+    unzip \
+    libpng-dev \
+    libjpeg-dev \
+    libonig-dev \
+    libxml2-dev \
+    && docker-php-ext-install pdo pdo_mysql
+
+# Instalar Composer si lo necesitas
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Habilitar módulo rewrite de Apache
+RUN a2enmod rewrite
+```
+
+
+### Asi queda el servicio wordpress en el archivo docker-compose
+```docker-compose.yml
+  wordpress:
+    build:
+      context: .
+      dockerfile: Dockerfile.wordpress
+    container_name: wordpress
+    restart: always
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_NAME: appdb
+      WORDPRESS_DB_USER: appuser
+      WORDPRESS_DB_PASSWORD: apppass
+    ports:
+      - "8082:80"
+    volumes:
+      - ./wordpress:/var/www/html
+    depends_on:
+      - db
+    networks:
+      - app-network
+```
+
+### Adicionalmente una forma de instalar el modulo PDO en wordpress es mediante el uso de exec 
+
+```bash
+docker exec -it wordpress bash
+
+apt update && apt install -y libzip-dev libpng-dev libjpeg-dev libonig-dev libxml2-dev unzip
+docker-php-ext-install pdo pdo_mysql
+
+exit
+docker restart wordpress
+```

@@ -16,6 +16,10 @@ $roles = $userRepo->getAllRoles();
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+    <script>
+        const miPluginAjaxUrlBase = '<?php echo plugin_dir_url(__FILE__); ?>'; // Points to .../wp-content/plugins/mi-plugin/src/
+    </script>
+
     <style>
         body {
             background-color: #f1f3f5;
@@ -99,7 +103,7 @@ $roles = $userRepo->getAllRoles();
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         function reloadUserTable() {
-            fetch('<?php echo plugin_dir_url(__FILE__) . 'src/ui/reloadUserTable.php'; ?>')
+            fetch(`${miPluginAjaxUrlBase}ui/reloadUserTable.php`)
                 .then(response => response.text())
                 .then(html => {
                     document.getElementById('user-table-container').innerHTML = html;
