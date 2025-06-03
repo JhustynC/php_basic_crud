@@ -8,57 +8,30 @@ class User extends Model {
         parent::__construct();
     }
 
+
     // Crear un nuevo usuario
     public function create($data) {
-        $sql = "INSERT INTO usuarios (nombre, email, contrasena) VALUES (?, ?, ?)";
-        $stmt = $this->pdo->prepare($sql);
-        $result = $stmt->execute([
-            $data['nombre'],
-            $data['email'],
-            $data['contrasena']
-        ]);
-        if ($result) {
-            return $this->pdo->lastInsertId();
-        }
-        return false;
+        return parent::create($data);
     }
 
     // Buscar un usuario por id
     public function find($id) {
-        $sql = "SELECT * FROM usuarios WHERE id = ?";
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([$id]);
-        return $stmt->fetch();
+        return parent::find($id);
     }
 
     // Actualizar un usuario por id
     public function update($id, $data) {
-        $fields = [];
-        $values = [];
-
-        foreach ($data as $key => $value) {
-            $fields[] = "$key = ?";
-            $values[] = $value;
-        }
-        $values[] = $id; // para el WHERE
-
-        $sql = "UPDATE usuarios SET " . implode(", ", $fields) . " WHERE id = ?";
-        $stmt = $this->pdo->prepare($sql);
-        return $stmt->execute($values);
+        return parent::update($id, (array) $data);
     }
 
     // Eliminar un usuario por id
     public function delete($id) {
-        $sql = "DELETE FROM usuarios WHERE id = ?";
-        $stmt = $this->pdo->prepare($sql);
-        return $stmt->execute([$id]);
+        return parent::delete($id);
     }
 
     // Obtener todos los usuarios
     public function all() {
-        $sql = "SELECT * FROM usuarios";
-        $stmt = $this->pdo->query($sql);
-        return $stmt->fetchAll();
+        return parent::all();
     }
 
     // Métodos para roles que ya tienes

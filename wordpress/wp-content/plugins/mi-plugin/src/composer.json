@@ -1,0 +1,10 @@
+{
+  "name": "usuario/roles-crud",
+  "description": "Gestión de usuarios con ORM y AJAX",
+  "require": {},
+  "autoload": {
+    "psr-4": {
+      "App\\": ""
+    }
+  }
+}
